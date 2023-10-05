@@ -11,9 +11,8 @@ from flask_cors import CORS
 # Establishes a connection with Pi Shop website, uses Solenium to load dynamic content 
 # and Beautiful Soup to parse for info
 
-retrieve_item_pi_shop()
 
-def retrieve_item_pi_shop():
+def retrieve_item_pi_shop(search_product):
 
     #initalize webdriver
     options = webdriver.ChromeOptions()
@@ -23,8 +22,10 @@ def retrieve_item_pi_shop():
     options.add_argument('--headless=new')
     driver = webdriver.Chrome(options=options)
 
-    
-    driver.get("https://www.pishop.us/search.php?search_query=raspberry%20pi%204&section=product")
+    base_url = 'https://www.pishop.us/search.php'
+    url = f'{base_url}?search_query={search_product.replace(" ", "%20")}&section=product'
+    print(url)
+    #driver.get(url)
 
     product_info = []
 
@@ -32,8 +33,9 @@ def retrieve_item_pi_shop():
     main_page = driver.page_source
     soup = BeautifulSoup(main_page, 'html.parser')
     product_grids = soup.find_all('div', class_= "product-grid product-grid-4 col-lg-3 col-md-4 col-6")
-
+    
     #Scrape the info for first 4 products since those are the most relevant
+
     for product in product_grids[:4]:
             #right block in Pi Shop contains link to product page and product name
             right_block= product.find('div', class_= "right-block")
@@ -47,19 +49,20 @@ def retrieve_item_pi_shop():
 
             #Check if the product title contains the product we are looking for
             #If it doesn't start the next iteration
-            if product_title.find("Raspberry Pi 4") == -1:
+            if product_title.find(search_product) == -1:
                 continue
 
             product_link = right_block.find('a').get('href')
-
+        
+            
             left_block = product.find('div', class_='left-block')
-            print(product_img)
-            product_img = left_block.find('img', class_='img-responsive lazyautosizes lazyloaded').get('src')
-            print
+            product_img = left_block.find('img').get('src')
+            
            
 
-            product_price = right_block.find('a', class_='price-section price-section--withoutTax').find('span', class_='price price--withoutTax').text
-            print(product_price)
+            product_price = right_block.find('span', class_='price--withoutTax').text
+            
+            
             try:
                 #find scratcher info and add it to list
                 product_info.append((product_img, product_title, product_price, product_link))
@@ -68,6 +71,18 @@ def retrieve_item_pi_shop():
                 continue
 
     print(product_info)
-
+    return product_info
 
     driver.close()
+
+def scrape():
+     
+    information = []
+
+    #Storing all of the infomration for all of the Raspberry Pis in Pi Shop
+    information.append(retrieve_item_pi_shop("Raspberry Pi 3"))
+    information.append(retrieve_item_pi_shop("Raspberry Pi 4"))
+    information.append(retrieve_item_pi_shop("raspberry pi 5"))
+
+    #2 Options: We can send all of the information all at once and let the front end organize, or 
+    #we can organize it here and send information multiple times
