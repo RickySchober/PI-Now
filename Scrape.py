@@ -1,6 +1,7 @@
 import requests
 import re
 import time
+from flask import Flask, jsonify, request
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -202,7 +203,7 @@ def scrape():
             password='pi_now23',
             database='pi_now'
     )
-   # information = [[('Raspberry Pi 3 – Model A+ (PLUS) - 512MB RAM', '25.00', 'https://cdn11.bigcommerce.com/s-2fbyfnm8ev/images/stencil/300x300/products/437/1726/2063_3__64258.1546973813.jpg?c=2', 'https://www.pishop.us/product/raspberry-pi-3-model-a-plus-512mb-ram/', 'Pi Shop')], [('Raspberry Pi 4 Model B/4GB', '55.00', 'https://cdn11.bigcommerce.com/s-2fbyfnm8ev/images/stencil/300x300/products/641/2349/4GB-9004__53667.1560436241__58682.1561146139.jpg?c=2', 'https://www.pishop.us/product/raspberry-pi-4-model-b-4gb/', 'Pi Shop')], [('\nAluminum Heat Sink for Raspberry Pi 3 - 14 x 14 x 8mm', '1.50', 'https://cdn-shop.adafruit.com/310x233/3083-00.jpg', 'https://www.adafruit.com/product/3083', 'Ada Fruit')], [('\nRaspberry Pi 4 Model B - 2 GB RAM', '45.00', 'https://cdn-shop.adafruit.com/310x233/4292-03.jpg', 'https://www.adafruit.com/product/4292', 'Ada Fruit'), ('\nRaspberry Pi 4 Model B - 4 GB RAM', '55.00', 'https://cdn-shop.adafruit.com/310x233/4296-11.jpg', 'https://www.adafruit.com/product/4296', 'Ada Fruit')]]
+    information = [[('Raspberry Pi 3 – Model A+ (PLUS) - 512MB RAM', '25.00', 'https://cdn11.bigcommerce.com/s-2fbyfnm8ev/images/stencil/300x300/products/437/1726/2063_3__64258.1546973813.jpg?c=2', 'https://www.pishop.us/product/raspberry-pi-3-model-a-plus-512mb-ram/', 'Pi Shop')], [('Raspberry Pi 4 Model B/4GB', '55.00', 'https://cdn11.bigcommerce.com/s-2fbyfnm8ev/images/stencil/300x300/products/641/2349/4GB-9004__53667.1560436241__58682.1561146139.jpg?c=2', 'https://www.pishop.us/product/raspberry-pi-4-model-b-4gb/', 'Pi Shop')], [('\nAluminum Heat Sink for Raspberry Pi 3 - 14 x 14 x 8mm', '1.50', 'https://cdn-shop.adafruit.com/310x233/3083-00.jpg', 'https://www.adafruit.com/product/3083', 'Ada Fruit')], [('\nRaspberry Pi 4 Model B - 2 GB RAM', '45.00', 'https://cdn-shop.adafruit.com/310x233/4292-03.jpg', 'https://www.adafruit.com/product/4292', 'Ada Fruit'), ('\nRaspberry Pi 4 Model B - 4 GB RAM', '55.00', 'https://cdn-shop.adafruit.com/310x233/4296-11.jpg', 'https://www.adafruit.com/product/4296', 'Ada Fruit')]]
     #print(information)
 
         
@@ -232,6 +233,47 @@ def scrape():
 
     cursor.close()
     cnx.close() 
+
+def get_pis():
+
+    cnx = mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='pi_now23',
+        database='pi_now'
+    )
+        
+    # Create a cursor object
+    cursor = cnx.cursor()
+        
+    # Execute a SELECT query to fetch data from the table
+    query = "SELECT * FROM raspberry_pi"
+    cursor.execute(query)
+        
+    # Fetch all rows of the result
+    rows = cursor.fetchall()
+        
+    # Convert the rows to a list of dictionaries
+    data = []
+    for row in rows:
+        data.append({
+            'name': row[0],
+            'price': row[1],
+            'img_url': row[2],
+            'product_url': row[3],
+            'shop_name': row[4],
+        })
+        
+    # Close the cursor and connection
+    cursor.close()
+    cnx.close()
+
+    print(data)
+        
+    # Return the data as JSON
+    return jsonify(data), 200
+
+    
 
 
 scrape()
