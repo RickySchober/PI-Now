@@ -6,18 +6,22 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import StaleElementReferenceException
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
 from flask_cors import CORS
 import os
+
 
 def retrieve_item_ada_fruit(search_product):
 
     #initalize webdriver
-    options = webdriver.ChromeOptions()
-    options.add_argument('--ignore-certificate-errors')
-    options.add_argument('--incognito')
-    options.page_load_strategy = 'eager'
-    options.add_argument('--headless=new')
-    driver = webdriver.Chrome(options=options)
+    option = webdriver.ChromeOptions()
+    option.add_argument("start-maximized")
+    option.add_argument('--ignore-certificate-errors')
+    option.add_argument('--incognito')
+    option.page_load_strategy = 'eager'
+    option.add_argument('--headless=new')
+    driver = webdriver.Chrome(service = Service(ChromeDriverManager().install()), options=option)
 
     base_url = 'https://www.adafruit.com/search?q='
     url = f'{base_url}{search_product.replace(" ", "%20")}&section=product'
@@ -90,13 +94,13 @@ def retrieve_item_ada_fruit(search_product):
 
 def retrieve_item_pi_shop(search_product):
 
-    #initalize webdriver
-    options = webdriver.ChromeOptions()
-    options.add_argument('--ignore-certificate-errors')
-    options.add_argument('--incognito')
-    options.page_load_strategy = 'eager'
-    options.add_argument('--headless=new')
-    driver = webdriver.Chrome(options=options)
+    option = webdriver.ChromeOptions()
+    option.add_argument("start-maximized")
+    option.add_argument('--ignore-certificate-errors')
+    option.add_argument('--incognito')
+    option.page_load_strategy = 'eager'
+    option.add_argument('--headless=new')
+    driver = webdriver.Chrome(service = Service(ChromeDriverManager().install()), options=option)
 
     base_url = 'https://www.pishop.us/search.php'
     url = f'{base_url}?search_query={search_product.replace(" ", "%20")}&section=product'
@@ -163,11 +167,6 @@ def retrieve_item_pi_shop(search_product):
     return product_info
 
 
-def flatten_information(information):
-    # Flatten the nested list of tuples
-    flat_information = [item for sublist in information for item in sublist]
-    return flat_information
-
 
 def scrape():
      
@@ -187,90 +186,8 @@ def scrape():
     info = retrieve_item_ada_fruit("Raspberry Pi 5")
     if info:   information.append(info)
     #Storing all of the infomration for all of the Raspberry Pis in Pi Shop
-  
-    
+    #information now holds all the info
 
-    #2 Options: We can send all of the information all at once and let the front end organize, or 
-    #we can organize it here and send information multiple times
+    #jsonify(information, 200)
 
-
-    cnx = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='pi_now23',
-            database='pi_now'
-    )
-    information = [[('Raspberry Pi 3 – Model A+ (PLUS) - 512MB RAM', '25.00', 'https://cdn11.bigcommerce.com/s-2fbyfnm8ev/images/stencil/300x300/products/437/1726/2063_3__64258.1546973813.jpg?c=2', 'https://www.pishop.us/product/raspberry-pi-3-model-a-plus-512mb-ram/', 'Pi Shop')], [('Raspberry Pi 4 Model B/4GB', '55.00', 'https://cdn11.bigcommerce.com/s-2fbyfnm8ev/images/stencil/300x300/products/641/2349/4GB-9004__53667.1560436241__58682.1561146139.jpg?c=2', 'https://www.pishop.us/product/raspberry-pi-4-model-b-4gb/', 'Pi Shop')], [('\nAluminum Heat Sink for Raspberry Pi 3 - 14 x 14 x 8mm', '1.50', 'https://cdn-shop.adafruit.com/310x233/3083-00.jpg', 'https://www.adafruit.com/product/3083', 'Ada Fruit')], [('\nRaspberry Pi 4 Model B - 2 GB RAM', '45.00', 'https://cdn-shop.adafruit.com/310x233/4292-03.jpg', 'https://www.adafruit.com/product/4292', 'Ada Fruit'), ('\nRaspberry Pi 4 Model B - 4 GB RAM', '55.00', 'https://cdn-shop.adafruit.com/310x233/4296-11.jpg', 'https://www.adafruit.com/product/4296', 'Ada Fruit')]]
-    #print(information)
-
-        
-    if cnx.is_connected():
-        print('Connected to MySQL server')
-
-    # Create a cursor object
-    cursor = cnx.cursor()
-
-    #empty the table befor adding
-    sql = "TRUNCATE raspberry_pi;"
-
-    cursor.execute(sql)
-    cnx.commit()
-    # Flatten the information list
-    information = flatten_information(information)
-
-    sql = "INSERT INTO raspberry_pi (name, price, img_url, product_url, shop_name) " \
-      "VALUES (%s, %s, %s, %s, %s) " \
-      "ON DUPLICATE KEY UPDATE price = VALUES(price), " \
-      "product_url = VALUES(product_url), " \
-      "img_url = VALUES(img_url)"
-    
-    cursor.executemany(sql, information)
-    
-    cnx.commit()
-
-    cursor.close()
-    cnx.close() 
-
-def get_pis():
-
-    cnx = mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='pi_now23',
-        database='pi_now'
-    )
-        
-    # Create a cursor object
-    cursor = cnx.cursor()
-        
-    # Execute a SELECT query to fetch data from the table
-    query = "SELECT * FROM raspberry_pi"
-    cursor.execute(query)
-        
-    # Fetch all rows of the result
-    rows = cursor.fetchall()
-        
-    # Convert the rows to a list of dictionaries
-    data = []
-    for row in rows:
-        data.append({
-            'name': row[0],
-            'price': row[1],
-            'img_url': row[2],
-            'product_url': row[3],
-            'shop_name': row[4],
-        })
-        
-    # Close the cursor and connection
-    cursor.close()
-    cnx.close()
-
-    print(data)
-        
-    # Return the data as JSON
-    return jsonify(data), 200
-
-    
-
-
-scrape()
+#scrape()

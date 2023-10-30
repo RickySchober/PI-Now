@@ -1,8 +1,13 @@
 from flask import Flask
-from Scrape import get_pis
+from Scrape import scrape
+
 app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-    get_pis()
-    return 'Hello, World!'
+    return 'Hello World'
+
+@app.route('/deez')
+def deez():
+    scrape()
+    return "deez"
