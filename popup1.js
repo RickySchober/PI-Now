@@ -6,8 +6,13 @@ const addResponseElement = (element) => {
     response.appendChild(newSearchResponse);
 }
 const addResponse = (data, resultElement) => {
-    for(let  i = 0; i<jsonSize; i++){
-        addResponseElement(data[i], resultElement);
+    for (const [key, value] of Object.entries(data)){
+        arr = [];
+        for (x in value[x]){
+            arr.push(value[x]);
+        }
+        arr.push(key);
+        addResponseElement(arr)
     }
 }
 
